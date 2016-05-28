@@ -31,7 +31,7 @@ public class TestRHIoTTag implements IAdvertEventCallback {
 
         try {
             // Load the native library
-            System.loadLibrary("scannerJni");
+            HCIDump.loadLibrary();
 
             String hci = "hci" + device;
             //HCIDump.enableDebugMode(true);
