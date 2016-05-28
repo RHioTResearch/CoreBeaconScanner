@@ -108,6 +108,10 @@ public class HCIDump {
     */
     public native static void enableDebugMode(boolean flag);
 
+    public static void loadLibrary() {
+        System.loadLibrary("scannerJni");
+    }
+
     public static IRawEventCallback getRawEventCallback() {
         return rawEventCallback;
     }
