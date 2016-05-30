@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
  * The RHIoT Tag object interface that extracts the tag's sensor information from the BLE AdEventInfo.
  */
 public class RHIoTTag {
+    /** The ServiceData 16 bit service id used for the tag data structure */
     public static byte[] SERVICE_DATA_PREFIX = {(byte)0xAA, (byte)0xFE, 0x20};
 
     /**
@@ -29,6 +30,7 @@ public class RHIoTTag {
     }
 
 
+    /** */
     private short vBatt;
     private double tempC;
     private int advCnt;
@@ -149,15 +151,23 @@ public class RHIoTTag {
         this.address = address;
     }
 
-    public String toFullString() {
-        StringBuilder tmp = new StringBuilder("RHIoTTag(");
+    public String getAddressString() {
+        StringBuilder tmp = new StringBuilder("");
         if(address != null) {
             for (int n = 0; n < address.length; n ++) {
                 tmp.append(String.format("%02X", address[n]));
                 tmp.append(':');
             }
             tmp.setLength(tmp.length()-1);
+        } else {
+            tmp.append(":::::");
         }
+        return tmp.toString();
+    }
+
+    public String toFullString() {
+        StringBuilder tmp = new StringBuilder("RHIoTTag(");
+        tmp.append(getAddressString());
         tmp.append(')');
         tmp.append(String.format(": battery: %dmV", vBatt));
         tmp.append(String.format(", temp: %.2fC", tempC));
