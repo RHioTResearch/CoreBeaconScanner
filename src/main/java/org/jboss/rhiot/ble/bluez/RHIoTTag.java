@@ -154,9 +154,8 @@ public class RHIoTTag {
     public String getAddressString() {
         StringBuilder tmp = new StringBuilder("");
         if(address != null) {
-            for (int n = 0; n < address.length; n ++) {
-                tmp.append(String.format("%02X", address[n]));
-                tmp.append(':');
+            for(int n = address.length-1; n >= 0; n --) {
+                tmp.append(String.format("%02X:", address[n]));
             }
             tmp.setLength(tmp.length()-1);
         } else {
