@@ -109,7 +109,27 @@ public class HCIDump {
     public native static void enableDebugMode(boolean flag);
 
     public static void loadLibrary() {
-        System.loadLibrary("scannerJni");
+        UnsatisfiedLinkError error = null;
+        // First try to load the scannerJni library
+        try {
+            System.loadLibrary("scannerJni");
+            System.out.printf("Loaded scannerJni\n");
+        } catch (UnsatisfiedLinkError e) {
+            error = e;
+            System.err.printf("Failed to load scannerJni");
+            e.printStackTrace(System.err);
+            try {
+                System.loadLibrary("scannerJni-staticbluez");
+                System.out.printf("Loaded scannerJni-staticbluez\n");
+            } catch (UnsatisfiedLinkError e2) {
+                System.err.printf("Failed to load scannerJni-staticbluez");
+                e2.printStackTrace(System.err);
+                UnsatisfiedLinkError toThrow = new UnsatisfiedLinkError("Failed to load scannerJni and scannerJni-staticbluez");
+                toThrow.addSuppressed(error);
+                toThrow.initCause(e2);
+                throw toThrow;
+            }
+        }
     }
 
     public static IRawEventCallback getRawEventCallback() {
