@@ -58,7 +58,7 @@ public class AdStructure {
     }
 
     public String toString() {
-        StringBuilder tmp = new StringBuilder(String.format("ADS(type=%2X:%d): %s", type, length, dataAsHexString()));
+        StringBuilder tmp = new StringBuilder(String.format("ADS(type=0x%02X:%d): %s", type, length, dataAsHexString()));
         return tmp.toString();
     }
 }
