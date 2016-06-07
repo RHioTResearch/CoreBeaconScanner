@@ -10,7 +10,7 @@
 
     <groupId>org.jboss.rhiot.ble</groupId>
     <artifactId>core-ble-scanner</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.6-SNAPSHOT</version>
 
     <name>Core Platform BLE Scanner Bundle</name>
     <description>The BLE scanner code that is independent of any bootstrap framework</description>

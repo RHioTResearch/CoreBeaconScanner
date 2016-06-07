@@ -9,13 +9,13 @@ import java.nio.ByteOrder;
 import java.util.Date;
 
 /**
- * Test the general scanner receipt and extraction of the custom TI sensortag RHIoTTag firmware that advertises
- * a subset of the sensor data in a hacked eddystone TLM packet's ServiceData structure.
- *
- * -Djava.library.path=/usr/local/lib must be specified on command line in order for this to load the scannerJni lib.
- * This also typically one runs as root or use sudo to enable proper access for the native code.
+ * Test continually calling HCIDump.freeScanner/initScanner in a separate thread to validate the scanner
+ * can be reinitialized and still receive events on origial callback.
  */
-public class TestRHIoTTag implements IAdvertEventCallback {
+public class TestScannerReset implements IAdvertEventCallback {
+    static volatile boolean running = true;
+    static volatile String hciDev = "hci0";
+
     @Override
     public boolean advertEvent(AdEventInfo info) {
         System.out.printf("+++ advertEvent, rssi=%d, time=%s\n", info.getRssi(), new Date(info.getTime()));
@@ -24,6 +24,20 @@ public class TestRHIoTTag implements IAdvertEventCallback {
             System.out.printf("%s\n", tag.toFullString());
         }
         return false;
+    }
+
+    static void resetMonkey() {
+        while (running) {
+            try {
+                Thread.sleep(60 * 1000);
+            } catch (InterruptedException e) {
+            }
+            System.out.printf("\n\n++++++++++ Resetting scanner...");
+            HCIDump.freeScanner();
+            System.out.printf("++++++++++ freed, initing...\n\n");
+            HCIDump.initScanner(hciDev, 512, ByteOrder.BIG_ENDIAN);
+            System.out.printf("++++++++++done\n\n");
+        }
     }
 
     public static void main(String[] args) {
@@ -36,12 +50,22 @@ public class TestRHIoTTag implements IAdvertEventCallback {
             // Load the native library
             HCIDump.loadLibrary();
 
-            String hci = "hci" + device;
+            hciDev = "hci" + device;
             //HCIDump.enableDebugMode(true);
             HCIDump.setAdvertEventCallback(test);
-            HCIDump.initScanner(hci, 512, ByteOrder.BIG_ENDIAN);
+            HCIDump.initScanner(hciDev, 512, ByteOrder.BIG_ENDIAN);
+            // Start a reset thread
+            final Thread resetThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    resetMonkey();
+                }
+            }, "ResetThread");
+            resetThread.setDaemon(true);
+            resetThread.start();
+
+            // Let the scanner event thread run
             long eventCount = 1;
-            boolean running = true;
             while (running) {
                 Thread.sleep(10);
                 if(eventCount % 1000 == 0)
