@@ -34,8 +34,8 @@ public class AdEventInfo {
     }
     public String getBDaddrAsString() {
         StringBuilder tmp = new StringBuilder();
-        for(byte b : bdaddr) {
-            tmp.append(String.format("%2X:", b));
+        for(int n = bdaddr.length-1; n >= 0; n --) {
+            tmp.append(String.format("%02X:", bdaddr[n]));
         }
         tmp.setLength(tmp.length()-1);
         return tmp.toString();
