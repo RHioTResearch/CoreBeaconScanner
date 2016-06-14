@@ -11,6 +11,10 @@ public class RHIoTTag {
     /** The ServiceData 16 bit service id used for the tag data structure */
     public static byte[] SERVICE_DATA_PREFIX = {(byte)0xAA, (byte)0xFE, 0x20};
 
+    public enum KeyState {
+        NONE, LEFT, RIGHT, LEFT_AND_RIGHT, REED
+    }
+
     /**
      * A factory method that builds a RHIoTTag from BLE advertising events that contain the expected ServiceData.
      *
@@ -28,17 +32,37 @@ public class RHIoTTag {
         }
         return tag;
     }
+    public static KeyState keyStateForMask(int mask) {
+        KeyState keyState = KeyState.NONE;
+        if((mask & 0b01) != 0 && (mask & 0b010) != 0)
+            keyState = KeyState.LEFT_AND_RIGHT;
+        else if((mask & 0b01) != 0)
+            keyState = KeyState.LEFT;
+        else if((mask & 0b010) != 0)
+            keyState = KeyState.RIGHT;
+        else if((mask & 0b0100) != 0)
+            keyState = KeyState.REED;
+        return keyState;
+
+    }
 
 
-    /** */
+    /** Battery Voltage in mV */
     private short vBatt;
+    /** Temperature in C */
     private double tempC;
+    /** Advertisment packet count since power-up/reboot */
     private int advCnt;
+    /** Time since power-up/reboot in 0.1 second resolution */
     private int secCnt;
+    /** Bit 0: left key (user button), Bit 1: right key (power button), Bit 2: reed relay */
     private byte keys;
-    private short lux;
-    /** The BLE address fo the sending tag */
+    /** raw optical sensor data reading */
+    private int lux;
+    /** The BLE address for the sending tag */
     private byte[] address;
+    /** An optional name associated with the tag */
+    private String name;
 
     /**
      * Create an object from the data from the AdStructure with the tags ServiceData value. The data array
@@ -71,7 +95,10 @@ public class RHIoTTag {
         advCnt = buffer.getInt();
         secCnt = buffer.getInt();
         keys = buffer.get();
-        lux = buffer.getShort();
+        // Convert unsigned short to int
+        byte highByteLux = buffer.get();
+        byte lowByteLux = buffer.get();
+        lux = ((highByteLux & 0x0ff) << 8) + (lowByteLux & 0x0ff);
     }
 
     public String keysString() {
@@ -133,11 +160,27 @@ public class RHIoTTag {
     }
 
     /**
-     *
-     * @return
+     * Bit 0: left key (user button), Bit 1: right key (power button), Bit 2: reed relay
+     * @return button and reed press state
      */
-    public short getLux() {
+    public KeyState getKeyState() {
+        return keyStateForMask(keys);
+    }
+
+    /**
+     * @return the raw light sensor reading
+     */
+    public int getLux() {
         return lux;
+    }
+
+    /**
+     * See if the raw light sensor reading is above the given value.
+     * @param rawLuxValue raw lux sensor value to test
+     * @return true if the raw light sensor reading is above the given value, false otherwise
+     */
+    public boolean isLightSensorAbove(int rawLuxValue) {
+        return lux > rawLuxValue;
     }
 
     /**
@@ -151,6 +194,9 @@ public class RHIoTTag {
         this.address = address;
     }
 
+    /**
+     * @return The tag BLE address as a colon separate string of the hex values
+     */
     public String getAddressString() {
         StringBuilder tmp = new StringBuilder("");
         if(address != null) {
@@ -164,9 +210,29 @@ public class RHIoTTag {
         return tmp.toString();
     }
 
+    /**
+     * The optional assigned name
+     * @return possibly null name assigned to the tag
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set the name to assign to the tag
+     * @param name - name to assign
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String toFullString() {
         StringBuilder tmp = new StringBuilder("RHIoTTag(");
         tmp.append(getAddressString());
+        if(name != null) {
+            tmp.append('/');
+            tmp.append(name);
+        }
         tmp.append(')');
         tmp.append(String.format(": battery: %dmV", vBatt));
         tmp.append(String.format(", temp: %.2fC", tempC));
@@ -175,6 +241,17 @@ public class RHIoTTag {
         tmp.append(String.format(", advertCnt: %d", advCnt));
         tmp.append(String.format(", timeUp: %s", getTimeUpString()));
 
+        return tmp.toString();
+    }
+
+    public String toString() {
+        StringBuilder tmp = new StringBuilder("RHIoTTag(");
+        tmp.append(getAddressString());
+        if(name != null) {
+            tmp.append('/');
+            tmp.append(name);
+        }
+        tmp.append(')');
         return tmp.toString();
     }
 }
