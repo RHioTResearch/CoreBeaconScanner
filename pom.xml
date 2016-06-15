@@ -10,7 +10,7 @@
 
     <groupId>org.jboss.rhiot.ble</groupId>
     <artifactId>core-ble-scanner</artifactId>
-    <version>1.1.8</version>
+    <version>1.1.9-bluez401</version>
 
     <name>Core Platform BLE Scanner Bundle</name>
     <description>The BLE scanner code that is independent of any bootstrap framework</description>
@@ -97,7 +97,7 @@
                         </Include-Resource>
 
                         <Bundle-NativeCode>
-                            lib/linux/x86_64/libscannerJni-staticbluez.so; osname=Linux; processor=x86_64
+                            lib/linux/x86_64/libscannerJni-staticbluez401.so; osname=Linux; processor=x86_64
                         </Bundle-NativeCode>
                     </instructions>
                 </configuration>

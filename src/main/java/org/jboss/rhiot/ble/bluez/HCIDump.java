@@ -111,25 +111,29 @@ public class HCIDump {
     public static void loadLibrary() {
         UnsatisfiedLinkError error = null;
         // First try to load the scannerJni library
+        if(loadLibrary("scannerJni"))
+            return;
+
+        // Next try scannerJni-staticbluez
+        if(loadLibrary("scannerJni-staticbluez"))
+            return;
+
+        // Lastly try scannerJni-staticbluez401
+        if(loadLibrary("scannerJni-staticbluez401"))
+            return;
+
+        throw new UnsatisfiedLinkError("Failed to load any of scannerJni, scannerJni-staticbluez and scannerJni-staticbluez401");
+    }
+    private static boolean loadLibrary(String name) {
         try {
-            System.loadLibrary("scannerJni");
-            System.out.printf("Loaded scannerJni\n");
+            System.out.printf("Trying to load %s lib...\n", name);
+            System.loadLibrary(name);
+            System.out.printf("Loaded %s\n", name);
+            return true;
         } catch (UnsatisfiedLinkError e) {
-            error = e;
-            System.err.printf("Failed to load scannerJni");
-            e.printStackTrace(System.err);
-            try {
-                System.loadLibrary("scannerJni-staticbluez");
-                System.out.printf("Loaded scannerJni-staticbluez\n");
-            } catch (UnsatisfiedLinkError e2) {
-                System.err.printf("Failed to load scannerJni-staticbluez");
-                e2.printStackTrace(System.err);
-                UnsatisfiedLinkError toThrow = new UnsatisfiedLinkError("Failed to load scannerJni and scannerJni-staticbluez");
-                toThrow.addSuppressed(error);
-                toThrow.initCause(e2);
-                throw toThrow;
-            }
+            System.err.printf("Failed to load %s, msg=%s\n", name, e.getMessage());
         }
+        return false;
     }
 
     public static IRawEventCallback getRawEventCallback() {
