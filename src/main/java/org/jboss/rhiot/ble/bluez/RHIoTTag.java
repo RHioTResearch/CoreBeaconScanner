@@ -59,8 +59,9 @@ public class RHIoTTag {
     public static byte[] fromStringAddress(String strAddress) {
         byte[] address = new byte[6];
         String[] parts = strAddress.split(":");
-        for (int n = 0; n < parts.length; n ++) {
-            address[n] = (byte) Integer.parseInt(parts[n], 16);
+        // byte[] form is stored in reverse order
+        for (int i = 0, n = parts.length-1; n >= 0; n --, i ++) {
+            address[i] = (byte) Integer.parseInt(parts[n], 16);
         }
         return address;
     }
