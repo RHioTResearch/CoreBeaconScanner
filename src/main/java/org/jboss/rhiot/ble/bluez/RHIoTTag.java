@@ -32,6 +32,12 @@ public class RHIoTTag {
         }
         return tag;
     }
+
+    /**
+     * Return the KeyState enum for the given mask
+     * @param mask - bit mask for the button states on the sensor
+     * @return KeyState enum for the given mask
+     */
     public static KeyState keyStateForMask(int mask) {
         KeyState keyState = KeyState.NONE;
         if((mask & 0b01) != 0 && (mask & 0b010) != 0)
@@ -43,9 +49,27 @@ public class RHIoTTag {
         else if((mask & 0b0100) != 0)
             keyState = KeyState.REED;
         return keyState;
-
     }
 
+    /**
+     * Get the byte[] representation of the string address
+     * @param strAddress - string form of the BLE address as given by getAddressString
+     * @return byte[] representation of the string address
+     */
+    public static byte[] fromStringAddress(String strAddress) {
+        byte[] address = new byte[6];
+        int index = 0;
+        for (int n = 0; n < strAddress.length(); n ++) {
+            char c = strAddress.charAt(n);
+            if(c == ':')
+                continue;
+            if(Character.isDigit(c))
+                address[index] = (byte) (c - '0');
+            else
+                address[index] = (byte) (c - 'A');
+        }
+        return address;
+    }
 
     /** Battery Voltage in mV */
     private short vBatt;
@@ -63,6 +87,18 @@ public class RHIoTTag {
     private byte[] address;
     /** An optional name associated with the tag */
     private String name;
+
+    /**
+     * Create a tag from minimal information
+     * @param adddress - BLE address for tag
+     * @param keys - key mask reading
+     * @param lux - light sensor reading
+     */
+    public RHIoTTag(String adddress, byte keys, int lux) {
+        this.address = fromStringAddress(adddress);
+        this.keys = keys;
+        this.lux = lux;
+    }
 
     /**
      * Create an object from the data from the AdStructure with the tags ServiceData value. The data array
