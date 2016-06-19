@@ -58,15 +58,9 @@ public class RHIoTTag {
      */
     public static byte[] fromStringAddress(String strAddress) {
         byte[] address = new byte[6];
-        int index = 0;
-        for (int n = 0; n < strAddress.length(); n ++) {
-            char c = strAddress.charAt(n);
-            if(c == ':')
-                continue;
-            if(Character.isDigit(c))
-                address[index] = (byte) (c - '0');
-            else
-                address[index] = (byte) (c - 'A');
+        String[] parts = strAddress.split(":");
+        for (int n = 0; n < parts.length; n ++) {
+            address[n] = (byte) Integer.parseInt(parts[n], 16);
         }
         return address;
     }
